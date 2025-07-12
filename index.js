@@ -85,13 +85,15 @@ app.get('/debug-auth', (req, res) => {
     res.status(200).json(debugInfo);
 });
 
-// Routes
-app.use("/url", urlRoute);
+// Routes - Order matters!
 app.use("/user", userRoute);
-app.use("/", staticRoute);
 
-// URL redirection with enhanced analytics
-app.get('/url/:shortId', async (req, res) => {
+// URL routes (must come first to handle specific URL endpoints)
+app.use("/url", urlRoute);
+
+// URL redirection with enhanced analytics (catch-all for short URLs only)
+// This should only catch short URL redirects, not API calls
+app.get('/url/:shortId([a-zA-Z0-9_-]+)', async (req, res) => {
     try {
         const shortId = req.params.shortId;
 
@@ -140,6 +142,9 @@ app.get('/url/:shortId', async (req, res) => {
         });
     }
 });
+
+// Static routes (must come last)
+app.use("/", staticRoute);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

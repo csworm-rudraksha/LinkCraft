@@ -51,7 +51,7 @@ async function handelGenerateNewShortURL(req, res) {
 
         // Use production URL for short URL generation
         const baseUrl = process.env.NODE_ENV === 'production' 
-            ? 'https://linkcraft-cuh7.onrender.com/' 
+            ? 'https://linkcraft-cuh7.onrender.com' 
             : `${req.protocol}://${req.get('host')}`;
 
         return res.json({ 
@@ -134,7 +134,7 @@ async function handleGetUserUrls(req, res) {
 
         // Use production URL for short URL generation
         const baseUrl = process.env.NODE_ENV === 'production' 
-            ? 'https://linkcraft-cuh7.onrender.com/' 
+            ? 'https://linkcraft-cuh7.onrender.com' 
             : `${req.protocol}://${req.get('host')}`;
 
         const urlsWithAnalytics = urls.map(url => ({
