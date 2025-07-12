@@ -17,8 +17,10 @@ const PORT = process.env.PORT || 8001;
 // MongoDB Atlas connection string
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/short-url";
 
-// Connect to MongoDB Atlas
-connectToDB(MONGODB_URI);
+// Connect to MongoDB Atlas (handle errors gracefully)
+connectToDB(MONGODB_URI).catch(err => {
+    console.error('Failed to connect to MongoDB:', err);
+});
 
 // Session configuration
 app.use(session({
@@ -28,12 +30,14 @@ app.use(session({
     store: MongoStore.create({
         mongoUrl: MONGODB_URI,
         collectionName: 'sessions',
-        ttl: 24 * 60 * 60 // 24 hours
+        ttl: 24 * 60 * 60, // 24 hours
+        autoRemove: 'native'
     }),
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        httpOnly: true
     }
 }));
 
@@ -42,8 +46,8 @@ app.set("view engine", "ejs");
 app.set("views", path.resolve("./views"));
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Make user data available to all views
@@ -54,6 +58,15 @@ app.use((req, res, next) => {
         email: req.session.userEmail
     } : null;
     next();
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
 });
 
 // Routes
@@ -114,7 +127,7 @@ app.get('/url/:shortId', async (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
+    console.error('Error:', err.stack);
     res.status(500).render('error', { 
         error: "Server Error",
         message: "Something went wrong on our end. Please try again later."
@@ -129,8 +142,14 @@ app.use((req, res) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 LinkCraft Server Started at PORT: ${PORT}`);
-    console.log(`📱 Visit: ${process.env.NODE_ENV === 'production' ? 'https://link-craft-gray.vercel.app' : `http://localhost:${PORT}`}`);
-    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+// Only start server if not in serverless environment
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`🚀 LinkCraft Server Started at PORT: ${PORT}`);
+        console.log(`📱 Visit: ${process.env.NODE_ENV === 'production' ? 'https://link-craft-gray.vercel.app' : `http://localhost:${PORT}`}`);
+        console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+}
+
+// Export for Vercel
+module.exports = app;

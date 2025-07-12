@@ -1,9 +1,11 @@
 {
-  "name": "short-url",
+  "name": "linkcraft",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "build": "echo 'No build step required for Node.js app'"
   },
   "author": "",
   "license": "ISC",
@@ -18,5 +20,8 @@
     "mongoose": "^8.16.2",
     "nanoid": "^5.1.5",
     "nodemon": "^3.1.10"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
