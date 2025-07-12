@@ -32,7 +32,8 @@ app.use(session({
     }),
     cookie: {
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     }
 }));
 
@@ -130,6 +131,6 @@ app.use((req, res) => {
 
 app.listen(PORT, () => {
     console.log(`🚀 LinkCraft Server Started at PORT: ${PORT}`);
-    console.log(`📱 Visit: http://localhost:${PORT}`);
+    console.log(`📱 Visit: ${process.env.NODE_ENV === 'production' ? 'https://link-craft-gray.vercel.app' : `http://localhost:${PORT}`}`);
     console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
 });

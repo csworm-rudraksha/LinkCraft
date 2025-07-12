@@ -49,10 +49,15 @@ async function handelGenerateNewShortURL(req, res) {
         // Update user's URL count
         await User.findByIdAndUpdate(userId, { $inc: { urlCount: 1 } });
 
+        // Use production URL for short URL generation
+        const baseUrl = process.env.NODE_ENV === 'production' 
+            ? 'https://link-craft-gray.vercel.app' 
+            : `${req.protocol}://${req.get('host')}`;
+
         return res.json({ 
             success: true,
             shortId,
-            shortUrl: `${req.protocol}://${req.get('host')}/url/${shortId}`,
+            shortUrl: `${baseUrl}/url/${shortId}`,
             title: newUrl.title,
             originalUrl: url
         });
@@ -127,6 +132,11 @@ async function handleGetUserUrls(req, res) {
             isActive: true 
         }).sort({ createdAt: -1 });
 
+        // Use production URL for short URL generation
+        const baseUrl = process.env.NODE_ENV === 'production' 
+            ? 'https://link-craft-gray.vercel.app' 
+            : `${req.protocol}://${req.get('host')}`;
+
         const urlsWithAnalytics = urls.map(url => ({
             shortId: url.shortId,
             title: url.title,
@@ -134,7 +144,7 @@ async function handleGetUserUrls(req, res) {
             totalClicks: url.visitHistory.length,
             createdAt: url.createdAt,
             expiresAt: url.expiresAt,
-            shortUrl: `${req.protocol}://${req.get('host')}/url/${url.shortId}`
+            shortUrl: `${baseUrl}/url/${url.shortId}`
         }));
 
         return res.json({ urls: urlsWithAnalytics });
