@@ -146,7 +146,7 @@ app.use((req, res) => {
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
     app.listen(PORT, () => {
         console.log(`🚀 LinkCraft Server Started at PORT: ${PORT}`);
-        console.log(`📱 Visit: ${process.env.NODE_ENV === 'production' ? 'https://link-craft-gray.vercel.app' : `http://localhost:${PORT}`}`);
+        console.log(`📱 Visit: ${process.env.NODE_ENV === 'production' ? 'https://linkcraft-cuh7.onrender.com/' : `http://localhost:${PORT}`}`);
         console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
     });
 }
