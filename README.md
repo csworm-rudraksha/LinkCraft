@@ -1,8 +1,9 @@
-# URL Shortener - Complete Web Application
+# LinkCraft - Full Stack URL Shortner
+(for better Experience use on laptop or desktop)
 
 A full-featured URL shortening service built with Node.js, Express, MongoDB, and EJS. This application allows users to create short, memorable links with comprehensive analytics and user management.
 
-## 🚀 Features
+## Features
 
 ### Core Functionality
 - **URL Shortening**: Create short, unique URLs from long links
@@ -51,8 +52,8 @@ A full-featured URL shortening service built with Node.js, Express, MongoDB, and
    ```
 
 3. **Set up MongoDB**
-   - Make sure MongoDB is running on your system
-   - The application will connect to `mongodb://localhost:27017/short-url`
+   - Make sure MongoDB is running on your system or your mongodb atlas collection
+   - The application will connect to `mongodb://localhost:27017/short-url` || mongodb atlas URI
 
 4. **Start the application**
    ```bash
@@ -140,7 +141,7 @@ short-url/
 }
 ```
 
-## 🎨 Features in Detail
+## Features in Detail
 
 ### URL Creation
 - Generates unique 8-character short IDs using nanoid
@@ -185,7 +186,7 @@ short-url/
 Create a `.env` file for production:
 ```env
 PORT=8001
-MONGODB_URI=mongodb://localhost:27017/short-url
+MONGODB_URI=mongodb://localhost:27017/short-url  or your monogodb connection string
 SESSION_SECRET=your-secret-key-here
 NODE_ENV=production
 ```
@@ -199,7 +200,7 @@ NODE_ENV=production
 - Implement rate limiting
 - Add logging and monitoring
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -207,11 +208,8 @@ NODE_ENV=production
 4. Test thoroughly
 5. Submit a pull request
 
-## 📝 License
 
-This project is licensed under the ISC License.
-
-## 🆘 Support
+##  Support
 
 If you encounter any issues or have questions:
 1. Check the error logs
@@ -219,7 +217,7 @@ If you encounter any issues or have questions:
 3. Verify all dependencies are installed
 4. Check the browser console for JavaScript errors
 
-## 🎯 Future Enhancements
+## Future Enhancements
 
 - [ ] Custom short URL aliases
 - [ ] QR code generation
@@ -231,7 +229,3 @@ If you encounter any issues or have questions:
 - [ ] Password reset functionality
 - [ ] Social media sharing
 - [ ] URL preview generation
-
----
-
-**Built with ❤️ using Node.js, Express, MongoDB, and EJS** 
