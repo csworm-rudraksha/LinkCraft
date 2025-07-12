@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - LinkCraft</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+        .main-content {
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            transform: translateY(-2px);
+        }
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        .url-item {
+            transition: all 0.3s ease;
+        }
+        .url-item:hover {
+            background-color: #f8f9fa;
+        }
+        .copy-btn {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .copy-btn:hover {
+            transform: scale(1.1);
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1050;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+            padding: 10px 15px;
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -100%;
+                width: 280px;
+                z-index: 1050;
+                transform: translateX(0);
+            }
+            .sidebar.show {
+                transform: translateX(100%);
+            }
+            .sidebar-toggle {
+                display: block;
+            }
+            .sidebar-overlay.show {
+                display: block;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Toggle Button -->
+    <button class="btn sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 px-0" id="sidebar">
+                <div class="sidebar p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0">
+                            <i class="fas fa-link me-2"></i>LinkCraft
+                        </h4>
+                        <button class="btn btn-sm btn-outline-light d-md-none" id="closeSidebar">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p class="mb-1">Welcome back,</p>
+                        <h6 class="mb-0"><%= user.name %></h6>
+                    </div>
+
+                    <nav class="nav flex-column">
+                        <a class="nav-link text-white active" href="#dashboard">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                        <a class="nav-link text-white" href="/">
+                            <i class="fas fa-home me-2"></i>Home
+                        </a>
+                        <a class="nav-link text-white" href="/user/logout">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10">
+                <div class="main-content p-4">
+                    <!-- Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+                        <div class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            <span id="currentTime"></span>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card stats-card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="card-title">Total URLs</h6>
+                                            <h3 id="totalUrls">0</h3>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-link fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card stats-card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="card-title">Total Clicks</h6>
+                                            <h3 id="totalClicks">0</h3>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-mouse-pointer fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card stats-card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="card-title">Active URLs</h6>
+                                            <h3 id="activeUrls">0</h3>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-check-circle fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Create URL Form -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-plus me-2"></i>Create New Short URL
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="urlForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="originalUrl" class="form-label">
+                                                <i class="fas fa-link me-1"></i>Original URL
+                                            </label>
+                                            <input 
+                                                type="url" 
+                                                class="form-control" 
+                                                id="originalUrl" 
+                                                placeholder="https://example.com"
+                                                required
+                                            >
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="urlTitle" class="form-label">
+                                                <i class="fas fa-tag me-1"></i>Title (Optional)
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                class="form-control" 
+                                                id="urlTitle" 
+                                                placeholder="My URL"
+                                            >
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="expiryDate" class="form-label">
+                                                <i class="fas fa-calendar me-1"></i>Expiry Date (Optional)
+                                            </label>
+                                            <input 
+                                                type="datetime-local" 
+                                                class="form-control" 
+                                                id="expiryDate"
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-magic me-2"></i>Create Short URL
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Success Message -->
+                    <div id="successAlert" class="alert alert-success alert-dismissible fade" style="display: none;">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span id="successMessage"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="errorAlert" class="alert alert-danger alert-dismissible fade" style="display: none;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span id="errorMessage"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+
+                    <!-- URLs Table -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list me-2"></i>My URLs
+                            </h5>
+                            <button class="btn btn-outline-primary btn-sm" onclick="loadUrls()">
+                                <i class="fas fa-sync-alt me-1"></i>Refresh
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Short URL</th>
+                                            <th>Original URL</th>
+                                            <th>Clicks</th>
+                                            <th>Created</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="urlsTableBody">
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted">
+                                                <i class="fas fa-spinner fa-spin me-2"></i>Loading URLs...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Modal -->
+    <div class="modal fade" id="analyticsModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-chart-line me-2"></i>URL Analytics
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="analyticsContent">
+                    <!-- Analytics content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sidebar functionality
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const closeSidebar = document.getElementById('closeSidebar');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('show');
+            sidebarOverlay.classList.toggle('show');
+        }
+
+        function closeSidebarFunc() {
+            sidebar.classList.remove('show');
+            sidebarOverlay.classList.remove('show');
+        }
+
+        sidebarToggle.addEventListener('click', toggleSidebar);
+        closeSidebar.addEventListener('click', closeSidebarFunc);
+        sidebarOverlay.addEventListener('click', closeSidebarFunc);
+
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleString();
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Load user URLs
+        async function loadUrls() {
+            try {
+                const response = await fetch('/url/user-urls');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayUrls(data.urls);
+                    updateStats(data.urls);
+                } else {
+                    showError(data.error || 'Failed to load URLs');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+            }
+        }
+
+        // Display URLs in table
+        function displayUrls(urls) {
+            const tbody = document.getElementById('urlsTableBody');
+            
+            if (urls.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            <i class="fas fa-inbox me-2"></i>No URLs created yet
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = urls.map(url => `
+                <tr class="url-item">
+                    <td>
+                        <strong>${url.title || 'Untitled'}</strong>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <span class="text-primary fw-bold me-2">${url.shortUrl}</span>
+                            <button class="btn btn-sm btn-outline-primary copy-btn" 
+                                    onclick="copyToClipboard('${url.shortUrl}')" 
+                                    title="Copy URL">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="text-muted" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; display: block;">
+                            ${url.redirectURL}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge bg-primary">${url.totalClicks}</span>
+                    </td>
+                    <td>
+                        <small class="text-muted">${new Date(url.createdAt).toLocaleDateString()}</small>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-info" 
+                                    onclick="showAnalytics('${url.shortId}')" 
+                                    title="View Analytics">
+                                <i class="fas fa-chart-line"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" 
+                                    onclick="deleteUrl('${url.shortId}')" 
+                                    title="Delete URL">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Update statistics
+        function updateStats(urls) {
+            const totalUrls = urls.length;
+            const totalClicks = urls.reduce((sum, url) => sum + url.totalClicks, 0);
+            const activeUrls = urls.filter(url => !url.expiresAt || new Date(url.expiresAt) > new Date()).length;
+
+            document.getElementById('totalUrls').textContent = totalUrls;
+            document.getElementById('totalClicks').textContent = totalClicks;
+            document.getElementById('activeUrls').textContent = activeUrls;
+        }
+
+        // Copy to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showSuccess('URL copied to clipboard!');
+            }).catch(() => {
+                showError('Failed to copy URL');
+            });
+        }
+
+        // Show analytics with charts
+        async function showAnalytics(shortId) {
+            try {
+                const response = await fetch(`/url/analytics/${shortId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const modal = new bootstrap.Modal(document.getElementById('analyticsModal'));
+                    
+                    // Prepare chart data
+                    const chartData = prepareChartData(data.analytics);
+                    
+                    document.getElementById('analyticsContent').innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>URL Information</h6>
+                                <p><strong>Title:</strong> ${data.title}</p>
+                                <p><strong>Short URL:</strong> ${data.shortId}</p>
+                                <p><strong>Original URL:</strong> ${data.redirectURL}</p>
+                                <p><strong>Created:</strong> ${new Date(data.createdAt).toLocaleString()}</p>
+                                ${data.expiresAt ? `<p><strong>Expires:</strong> ${new Date(data.expiresAt).toLocaleString()}</p>` : ''}
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Statistics</h6>
+                                <p><strong>Total Clicks:</strong> ${data.totalClicks}</p>
+                                <p><strong>Unique Visitors:</strong> ${data.uniqueVisitors}</p>
+                                <p><strong>Recent Visits (7 days):</strong> ${data.recentVisits}</p>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Click Trends (Last 7 Days)</h6>
+                                <div class="chart-container">
+                                    <canvas id="clickChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Hourly Activity</h6>
+                                <div class="chart-container">
+                                    <canvas id="hourlyChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <h6>Recent Visits</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>IP Address</th>
+                                        <th>User Agent</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.analytics.slice(-10).reverse().map(visit => `
+                                        <tr>
+                                            <td>${new Date(visit.timestamp).toLocaleString()}</td>
+                                            <td>${visit.ip || 'Unknown'}</td>
+                                            <td><small class="text-muted">${visit.userAgent || 'Unknown'}</small></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    
+                    modal.show();
+                    
+                    // Create charts after modal is shown
+                    setTimeout(() => {
+                        createClickChart(chartData.dates, chartData.clicks);
+                        createHourlyChart(chartData.hourly);
+                    }, 100);
+                } else {
+                    showError(data.error || 'Failed to load analytics');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+            }
+        }
+
+        // Prepare chart data
+        function prepareChartData(analytics) {
+            const now = new Date();
+            const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+            
+            // Filter visits from last 7 days
+            const recentVisits = analytics.filter(visit => visit.timestamp > sevenDaysAgo.getTime());
+            
+            // Group by date
+            const dateGroups = {};
+            const hourlyGroups = {};
+            
+            recentVisits.forEach(visit => {
+                const date = new Date(visit.timestamp);
+                const dateKey = date.toLocaleDateString();
+                const hour = date.getHours();
+                
+                dateGroups[dateKey] = (dateGroups[dateKey] || 0) + 1;
+                hourlyGroups[hour] = (hourlyGroups[hour] || 0) + 1;
+            });
+            
+            // Generate last 7 days
+            const dates = [];
+            const clicks = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(now.getTime() - (i * 24 * 60 * 60 * 1000));
+                const dateKey = date.toLocaleDateString();
+                dates.push(dateKey);
+                clicks.push(dateGroups[dateKey] || 0);
+            }
+            
+            // Generate hourly data
+            const hourly = [];
+            for (let hour = 0; hour < 24; hour++) {
+                hourly.push(hourlyGroups[hour] || 0);
+            }
+            
+            return { dates, clicks, hourly };
+        }
+
+        // Create click trend chart
+        function createClickChart(dates, clicks) {
+            const ctx = document.getElementById('clickChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Clicks',
+                        data: clicks,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create hourly activity chart
+        function createHourlyChart(hourly) {
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+                    datasets: [{
+                        label: 'Clicks',
+                        data: hourly,
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                        borderColor: '#667eea',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Delete URL
+        async function deleteUrl(shortId) {
+            if (!confirm('Are you sure you want to delete this URL?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/url/${shortId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showSuccess('URL deleted successfully!');
+                    loadUrls();
+                } else {
+                    showError(data.error || 'Failed to delete URL');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+            }
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            document.getElementById('successMessage').textContent = message;
+            const alert = new bootstrap.Alert(document.getElementById('successAlert'));
+            document.getElementById('successAlert').style.display = 'block';
+            setTimeout(() => {
+                alert.close();
+            }, 5000);
+        }
+
+        // Show error message
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            const alert = new bootstrap.Alert(document.getElementById('errorAlert'));
+            document.getElementById('errorAlert').style.display = 'block';
+            setTimeout(() => {
+                alert.close();
+            }, 5000);
+        }
+
+        // Handle URL form submission
+        document.getElementById('urlForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const originalUrl = document.getElementById('originalUrl').value;
+            const title = document.getElementById('urlTitle').value;
+            const expiryDate = document.getElementById('expiryDate').value;
+
+            try {
+                const response = await fetch('/url', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: originalUrl,
+                        title: title,
+                        expiresAt: expiryDate
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showSuccess(`Short URL created: ${data.shortUrl}`);
+                    document.getElementById('urlForm').reset();
+                    loadUrls();
+                } else {
+                    showError(data.error || 'Failed to create short URL');
+                }
+            } catch (error) {
+                showError('Network error. Please try again.');
+            }
+        });
+
+        // Load URLs on page load
+        document.addEventListener('DOMContentLoaded', loadUrls);
+    </script>
+</body>
+</html> 
