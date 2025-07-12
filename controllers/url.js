@@ -1,4 +1,4 @@
-const { nanoid } = require("nanoid");
+const { nanoid } = require("nanoid/non-secure");
 const URL = require("../models/url");
 const User = require("../models/user");
 
