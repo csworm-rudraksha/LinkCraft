@@ -93,9 +93,17 @@ app.use("/url", urlRoute);
 
 // URL redirection with enhanced analytics (catch-all for short URLs only)
 // This should only catch short URL redirects, not API calls
-app.get('/url/:shortId([a-zA-Z0-9_-]+)', async (req, res) => {
+app.get('/url/:shortId', async (req, res) => {
     try {
         const shortId = req.params.shortId;
+
+        // Skip if this looks like an API route
+        if (shortId === 'analytics' || shortId === 'user-urls') {
+            return res.status(404).render('error', { 
+                error: "Page Not Found",
+                message: "The page you're looking for doesn't exist."
+            });
+        }
 
         const entry = await URL.findOne({ 
             shortId,
