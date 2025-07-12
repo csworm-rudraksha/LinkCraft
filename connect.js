@@ -17,13 +17,21 @@ async function connectToDB(url) {
             socketTimeoutMS: 45000
         };
 
+        console.log('🔌 Attempting to connect to MongoDB...');
         const connection = await mongoose.connect(url, options);
         cachedConnection = connection;
         
         console.log('✅ Connected to MongoDB Atlas successfully');
+        
+        // Test the connection
+        const adminDb = connection.connection.db.admin();
+        const result = await adminDb.ping();
+        console.log('🏓 MongoDB ping result:', result);
+        
         return connection;
     } catch (error) {
         console.error('❌ MongoDB connection error:', error.message);
+        console.error('❌ Full error:', error);
         throw error;
     }
 }

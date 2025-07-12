@@ -47,6 +47,13 @@ async function handelUserSignup(req, res) {
         req.session.userName = user.name;
         req.session.userEmail = user.email;
 
+        console.log('✅ Signup successful for:', email);
+        console.log('Session data:', {
+            userId: req.session.userId,
+            userName: req.session.userName,
+            userEmail: req.session.userEmail
+        });
+
         return res.redirect("/dashboard");
     } catch (error) {
         console.error("Signup error:", error);
@@ -96,6 +103,13 @@ async function handelUserLogin(req, res) {
         req.session.userName = user.name;
         req.session.userEmail = user.email;
 
+        console.log('✅ Login successful for:', email);
+        console.log('Session data:', {
+            userId: req.session.userId,
+            userName: req.session.userName,
+            userEmail: req.session.userEmail
+        });
+
         return res.redirect("/dashboard");
     } catch (error) {
         console.error("Login error:", error);
@@ -116,9 +130,14 @@ async function handleUserLogout(req, res) {
 }
 
 async function requireAuth(req, res, next) {
+    console.log('🔐 Auth check - Session userId:', req.session?.userId);
+    console.log('🔐 Auth check - Session exists:', !!req.session);
+    
     if (!req.session.userId) {
+        console.log('❌ Auth failed - No userId in session, redirecting to login');
         return res.redirect("/login");
     }
+    console.log('✅ Auth successful - User authenticated');
     next();
 }
 

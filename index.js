@@ -31,12 +31,13 @@ app.use(session({
         mongoUrl: MONGODB_URI,
         collectionName: 'sessions',
         ttl: 24 * 60 * 60, // 24 hours
-        autoRemove: 'native'
+        autoRemove: 'native',
+        touchAfter: 24 * 3600 // Only update session once per day
     }),
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Set to false for Render compatibility
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        sameSite: 'lax', // Changed from 'none' to 'lax' for better compatibility
         httpOnly: true
     }
 }));
@@ -67,6 +68,21 @@ app.get('/health', (req, res) => {
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'development'
     });
+});
+
+// Debug endpoint for session and auth
+app.get('/debug-auth', (req, res) => {
+    const debugInfo = {
+        session_exists: !!req.session,
+        user_id: req.session?.userId || null,
+        user_name: req.session?.userName || null,
+        user_email: req.session?.userEmail || null,
+        session_id: req.sessionID || null,
+        cookies: req.headers.cookie || 'No cookies',
+        user_agent: req.get('User-Agent') || 'Unknown'
+    };
+    
+    res.status(200).json(debugInfo);
 });
 
 // Routes

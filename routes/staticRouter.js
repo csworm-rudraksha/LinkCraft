@@ -37,6 +37,13 @@ router.get("/login", (req, res) => {
 
 // Protected routes
 router.get("/dashboard", requireAuth, (req, res) => {
+    console.log('🔍 Dashboard accessed by user:', req.session.userName);
+    console.log('Session data in dashboard:', {
+        userId: req.session.userId,
+        userName: req.session.userName,
+        userEmail: req.session.userEmail
+    });
+    
     return res.render('dashboard', { 
         user: {
             name: req.session.userName,
